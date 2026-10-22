@@ -5,6 +5,7 @@
 #include <math.h>
 #include "hittable.h"
 #include "rtweekend.h"
+#include "material.h"
 
 // Construye un rayo hacia un punto aleatorio dentro del pixel (i, j).
 // pixel00_loc, pixel_deltau/v y camera_center son variables de la camara.
@@ -27,17 +28,18 @@ ray get_ray(int i, int j, point3 pixel00_loc,
 color ray_color(ray r, int depth,  hittable_list world) {
     // Caso base: demasiados rebotes, ya no se recoge mas luz
     if (depth <= 0)
-        return v3(0, 0, 0);
+    return v3(0, 0, 0);
 
     hit_record rec;
     // OJO: tmin = 0.001, no 0, para evitar el "acne de sombra" (ver pista)
     if (world_hit(world, r, 0.001, INFINITY, &rec)) {
-        // Nueva direccion difusa: normal + vector unitario aleatorio
-        vec3 direction = vec3_add(rec.normal, random_unit_vector());
-        ray bounced = { rec.p, direction }; // rec -> interseccion
-        // Cada rebote conserva el 50% de la luz (reflectividad de prueba)
-        // La normal esta en [-1,1]; la mapeamos a un color [0,1] (anterior)
-        return vec3_scale(ray_color(bounced, depth - 1, world), 0.5); // recursion
+        ray scattered;
+        color attenuation;
+        if (scatter(rec.mat, r, rec, &attenuation, &scattered)) {
+            // color = atenuacion * color del rayo dispersado 
+            return vec3_mul(attenuation, ray_color(scattered, depth - 1, world));
+        }
+        return v3(0, 0, 0);    // material que absorbe
     }
 
     // Fondo (cielo)
@@ -85,11 +87,20 @@ int main(void) {
         vec3_add(viewport_upper_left,
                  vec3_scale(vec3_add(pixel_delta_u, pixel_delta_v), 0.5));
 
+    // Materiales (¡deben sobrevivir a todo el render!)
+    material mat_ground = { LAMBERTIAN, v3(0.8, 0.8, 0.0), 0, 0 };
+    material mat_center = { LAMBERTIAN, v3(0.1, 0.2, 0.5), 0, 0 };
+    material mat_left   = { METAL,      v3(0.8, 0.8, 0.8), 0.3, 0 };
+    material mat_right  = { METAL,      v3(0.8, 0.6, 0.2), 1.0, 0 };
+    
+    // Esferas: cadauna apunta a su material con &
     sphere spheres[] = {
-        { v3(0,      0, -1),   0.5, NULL },
-        { v3(0, -100.5, -1), 100.0, NULL },
+        { v3( 0, -100.5, -1), 100.0, &mat_ground },
+        { v3( 0,      0, -1.2), 0.5, &mat_center },
+        { v3(-1,      0, -1),   0.5, &mat_left },
+        { v3( 1,      0, -1),   0.5, &mat_right }, 
     };
-    hittable_list world = { spheres, 2 };
+    hittable_list world = { spheres, 4 };
 
     // --- Render ---
     int max_depth = 50; // profundidad maxima
