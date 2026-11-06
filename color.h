@@ -5,13 +5,13 @@
 #include "vec3.h"
 #include "rtweekend.h"
 
-// De lineal a gamma (gamma = 2) -> raiz cuadrada
+// De lineal a gamma (gamma = 2)  ->  raiz cuadrada
 static inline double linear_to_gamma(double linear) {
     return (linear > 0) ? sqrt(linear) : 0;
 }
 
 // Escribe un pixel en formato PPM (tres enteros 0..255) en el flujo "out".
-static void write_color(FILE *out, color pixel_color) { // file *out puntero que apunta a un tipo archivo
+static void write_color(FILE *out, color pixel_color) {
     double r = linear_to_gamma(pixel_color.x);
     double g = linear_to_gamma(pixel_color.y);
     double b = linear_to_gamma(pixel_color.z);
