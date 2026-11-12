@@ -7,21 +7,21 @@ int main(void) {
     // Materiales
     material mat_ground = { LAMBERTIAN, v3(0.8, 0.8, 0.0), 0, 0 };
     material mat_center = { LAMBERTIAN, v3(0.1, 0.2, 0.5), 0, 0 };
-    material mat_right  = { METAL, v3(0.8, 0.6, 0.2), 1.0, 0 };    
-    material mat_left   = { DIELECTRIC, v3(0,0,0), 0, 1.50 };        // vidrio
-    material mat_bubble = { DIELECTRIC, v3(0,0,0), 0, 1.0 / 1.50 };  // hueco interior
+    material mat_left   = { DIELECTRIC, v3(0,0,0), 0, 1.50 };
+    material mat_bubble = { DIELECTRIC, v3(0,0,0), 0, 1.0/1.50 };
+    material mat_right  = { METAL,      v3(0.8, 0.6, 0.2), 1.0, 0 };
 
     sphere spheres[] = {
         { v3( 0, -100.5, -1), 100.0, &mat_ground },
         { v3( 0,      0, -1.2), 0.5,  &mat_center },
-        { v3(-1,      0, -1),   0.5,  &mat_left },   // esfera de vidrio
-        { v3(-1,      0, -1),   0.4,  &mat_bubble }, // burbuja dentro (mismo centro)
+        { v3(-1,      0, -1),   0.5,  &mat_left },
+        { v3(-1,      0, -1),   0.4,  &mat_bubble },
         { v3( 1,      0, -1),   0.5,  &mat_right },
     };
     hittable_list world = { spheres, 5 };
-    
-    // Camara
-    camera cam;  // cam es estructura tipo camera
+
+    // Camara: fija los parametros y renderiza
+    camera cam;
     cam.aspect_ratio      = 16.0 / 9.0;
     cam.image_width       = 400;
     cam.samples_per_pixel = 100;
@@ -31,6 +31,13 @@ int main(void) {
     cam.lookat            = v3(0, 0, -1);
     cam.vup               = v3(0, 1, 0);
     
-    camera_render(&cam, world);
+    FILE *f;
+    char nombre_archivo[20];
+    for (int i = 0; i < 10; i++) {
+        snprintf(nombre_archivo, sizeof(nombre_archivo), "imagen_%03d.ppm", i);
+        f = fopen(nombre_archivo, "w");
+        camera_render(f, &cam, world);
+        fclose(f);
+        }
     return 0;
 }
