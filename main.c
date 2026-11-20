@@ -1,4 +1,3 @@
-#include "vec3.h"
 #include "rtweekend.h"
 #include "hittable.h"
 #include "material.h"
@@ -23,8 +22,6 @@ int main(void) {
 
     // Camara: fija los parametros y renderiza
     camera cam;
-    cam.defocus_angle     = 10.0;
-    cam.focus_dist        = 3.4;
     cam.aspect_ratio      = 16.0 / 9.0;
     cam.image_width       = 400;
     cam.samples_per_pixel = 100;
@@ -33,7 +30,14 @@ int main(void) {
     cam.lookfrom          = v3(-2, 2, 1);
     cam.lookat            = v3(0, 0, -1);
     cam.vup               = v3(0, 1, 0);
-
-    camera_render(&cam, world);
+    
+    FILE *f;
+    char nombre_archivo[20];
+    for (int i = 0; i < 10; i++) {
+        snprintf(nombre_archivo, sizeof(nombre_archivo), "imagen_%03d.ppm", i);
+        f = fopen(nombre_archivo, "w");
+        camera_render(f, &cam, world);
+        fclose(f);
+        }
     return 0;
 }
