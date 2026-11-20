@@ -3,7 +3,6 @@
 
 #include <math.h>
 #include <stdlib.h>   // rand, RAND_MAX
-#include "vec3.h"
 
 #define PI 3.1415926535897932385
 
@@ -52,6 +51,14 @@ static inline vec3 random_unit_vector(void) {
 static inline vec3 random_on_hemisphere(vec3 normal) {
     vec3 on_unit = random_unit_vector();
     return (vec3_dot(on_unit, normal) > 0.0) ? on_unit : vec3_neg(on_unit);
+}
+
+// Punto aleatorio dentro del disco unidad del plano z = 0
+static inline vec3 random_in_unit_disk(void) {
+    while (1) {
+        vec3 p = v3(random_double_range(-1, 1), random_double_range(-1, 1), 0);
+        if (vec3_length_squared(p) < 1) return p;
+    }
 }
 
 // ¿Es el vector practicamente cero? (lo usaremos en la Tarea 8)
